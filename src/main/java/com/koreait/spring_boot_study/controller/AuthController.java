@@ -1,7 +1,12 @@
 package com.koreait.spring_boot_study.controller;
 
-import com.koreait.spring_boot_study.dto.SignInReqDto;
-import com.koreait.spring_boot_study.dto.SignUpReqDto;
+import com.koreait.spring_boot_study.dto.SigninReqDto;
+import com.koreait.spring_boot_study.dto.SignupReqDto;
+import com.koreait.spring_boot_study.dto.SigninRespDto;
+import com.koreait.spring_boot_study.dto.SignupRespDto;
+import com.koreait.spring_boot_study.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +16,8 @@ import java.util.List;
 public class AuthController {
     // @RequestParam
     // 클라이언트가 URL 쿼리스트링으로 넘긴 값을 메서드 파라미터로 전달
+    @Autowired
+    private AuthService authService;
 
     @GetMapping("/get")
     // localhost:8080/auth/get?userId=xx
@@ -68,26 +75,60 @@ public class AuthController {
     // 데이터를 전달하기 위한 객체
     // 클라이언트 간에 데이터를 주고받을 때 사용하는 중간 객체
     // DTO가 Entity는 아님
-    @PostMapping("/signUp")
-    public String signUp(@RequestBody SignUpReqDto signUpReqDto) {
-        // JSON의 키와 DTO의 키가 같아야 함.
-        System.out.println(signUpReqDto);
-        return signUpReqDto.getUsername() + "님 회원가입 완료되었습니다.";
+//    @PostMapping("/signup")
+//    public String signup(@RequestBody SignUpReqDto signupReqDto) {
+//        // JSON의 키와 DTO의 키가 같아야 함.
+//        System.out.println(signupReqDto);
+//        return signupReqDto.getUsername() + "님 회원가입 완료되었습니다.";
+//    }
+    @PostMapping("/signup")
+    public ResponseEntity<SignupRespDto> signup(@RequestBody SignupReqDto signupReqDto) {
+        return ResponseEntity.ok().body(authService.signup(signupReqDto));
     }
 
-    @PostMapping("/signIn")
-    public String signIn(@RequestBody SignInReqDto signInReqDto) {
-        String email = "wonyoung713@gmail.com";
-        String password = "1q2w3e";
+//    @PostMapping("/signin")
+//    public String signin(@RequestBody SigninReqDto signinReqDto) {
+//        String email = "wonyoung713@gmail.com";
+//        String password = "1q2w3e";
+//
+//        if(email.equals(signinReqDto.getEmail())) {
+//            if(password.equals(signinReqDto.getPassword())) {
+//                String userEmail = signinReqDto.getEmail();
+//                return "로그인 완료: " + userEmail.substring(0, userEmail.indexOf("@")) + "님 반갑습니다.";
+//            } else {
+//                return "비밀번호가 틀렸습니다.";
+//            }
+//        }
+//        return "존재하지 않는 회원입니다.";
+//    }
 
-        if(email.equals(signInReqDto.getEmail())) {
-            if(password.equals(signInReqDto.getPassword())) {
-                String userEmail = signInReqDto.getEmail();
-                return "로그인 완료: " + userEmail.substring(0, userEmail.indexOf("@")) + "님 반갑습니다.";
-            } else {
-                return "비밀번호가 틀렸습니다.";
-            }
+    // ResponseEntity
+    // HTTP 응답 전체를 커스터마이징을 해서 보낼 수 있는 스프링 클래스
+    // HTTP 상태 코드, 응답 바디, 응답 헤더 모두 포함
+    @PostMapping("signin")
+    public ResponseEntity<SigninRespDto> signin(@RequestBody SigninReqDto signinReqDto) {
+        if(signinReqDto.getEmail() == null || signinReqDto.getEmail().trim().isEmpty()) {
+            SigninRespDto signinRespDto = new SigninRespDto("failed", "이메일을 다시 입력해주세요.");
+            return ResponseEntity.badRequest().body(signinRespDto);
+        } else if(signinReqDto.getPassword() == null || signinReqDto.getPassword().trim().isEmpty()) {
+            SigninRespDto signinRespDto = new SigninRespDto("failed", "비밀번호를 다시 입력해주세요.");
+            return ResponseEntity.badRequest().body(signinRespDto);
         }
-        return "존재하지 않는 회원입니다.";
+        // 이메일, 비밀번호 다 있는 경우
+        SigninRespDto signinRespDto = new SigninRespDto("success", "로그인 성공!");
+        // Json형식으로 반환
+        return ResponseEntity.ok(signinRespDto);
+//        return ResponseEntity.ok().body(signinRespDto);
+//        return ResponseEntity.status(HttpStatus.OK).body(signinRespDto);
+        // 다 똑같은 방법
     }
+    // 200 OK => 요청 성공
+    // 400 Bad Request => 잘못된 요청(ex. 유효성 실패, JSON 파싱 오류)
+    // 401 Unauthorized => 인증 실패(ex. 로그인 안 됨, 토큰 없음)
+    // 403 Forbidden => 접근 권한 없음 (ex. 관리자만 접근 가능)
+    // 404 Not Found => 리소스 없음
+    // 409 Conflict => 중복 등으로 인한 충돌 (ex. 이미 존재하는 이메일)
+    // 500 Internal Server Error => 서버 내부 오류 (ex. 코드 문제, 예외 등)
+
+    // 200은 정상적으로 됐다, 400은 니가 잘못함;, 500은 서버가 터졌다
 }
