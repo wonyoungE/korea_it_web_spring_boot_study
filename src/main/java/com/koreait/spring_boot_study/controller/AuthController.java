@@ -85,6 +85,15 @@ public class AuthController {
     public ResponseEntity<SignupRespDto> signup(@RequestBody SignupReqDto signupReqDto) {
         return ResponseEntity.ok().body(authService.signup(signupReqDto));
     }
+    // 중복 체크같은 API는 대부분 200 OK로 응답하고
+    // 응답 본문(JSON)에 "중복 여부"를 표시합니다.
+    // 중복 체크는 정상적인 요청에 대한 정상적인 응답이기 때문에 200 OK이다.
+    // 이메일이 중복이든 아니든 요청 자체는 정상적으로 처리됐기 때문에 400/409같은 에러코드를 주지 않는다.
+    // 중복인거는 뒤에서 해결할 일
+    // 대신 JSON 응답 내부에서 중복됨/가능함 을 구분한다
+    // 그럼 언제 에러 코드(409 Conflict)를 쓰느냐?
+    // 그거는 진짜 예외 상황일 때
+    // 중복된 이메일로 회원가입을 실제로 시도했을 때(유효성 검사를 거치지 않고 DB에 넣으려고 시도했을 때) => 409
 
 //    @PostMapping("/signin")
 //    public String signin(@RequestBody SigninReqDto signinReqDto) {
